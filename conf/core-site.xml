@@ -34,5 +34,16 @@
     <name>hadoop.proxyuser.httpfs.groups</name>  
     <value>*</value>  
   </property> 
+  
+  <!-- Hive impersonation -->
+  <property>
+    <name>hadoop.proxyuser.hive.hosts</name>
+    <value>*</value>
+  </property>
+  
+  <property>
+    <name>hadoop.proxyuser.hive.groups</name>
+    <value>*</value>
+  </property>
 
 </configuration>

@@ -1,5 +1,5 @@
 FROM nimmis/java:oracle-8-jdk
-MAINTAINER Martin Chalupa <chalimartines@gmail.com>
+MAINTAINER Eric Djatsa <eric.djatsa@outlook.com>
 
 #Base image doesn't start in root
 WORKDIR /
@@ -14,15 +14,37 @@ COPY conf/python.list /etc/apt/sources.list.d/python.list
 #Add a Repository Key
 RUN wget http://archive.cloudera.com/cdh5/ubuntu/trusty/amd64/cdh/archive.key -O archive.key && sudo apt-key add archive.key && \
     sudo apt-get update
+    
+    
+# Prepare installation of mysql-server
+## NB : VERY IMPORTANT : we set the password for [ root ] user to 'admin'
+# you should therefore use this password whenever you perform any operation with root user
+# on the mysql db . Example : when initializing hive metastore DB and Oozie DB
+ 
+RUN echo mysql-server mysql-server/root_password select admin | debconf-set-selections
+RUN echo mysql-server mysql-server/root_password_again select admin | debconf-set-selections
+RUN echo mysql-server mysql-server/root_password seen true | debconf-set-selections
+RUN echo mysql-server mysql-server/root_password_again seen true | debconf-set-selections
 
 #Install CDH package and dependencies
-RUN sudo apt-get install -y zookeeper-server && \
+RUN DEBIAN_FRONTEND=noninteractive sudo apt-get install -y zookeeper-server && \
     sudo apt-get install -y hadoop-conf-pseudo && \
     sudo apt-get install -y oozie && \
     sudo apt-get install -y python2.7 && \
     sudo apt-get install -y hue && \
     sudo apt-get install -y hue-plugins && \
-    sudo apt-get install -y spark-core spark-history-server spark-python
+    sudo apt-get install -y spark-core spark-history-server spark-python && \
+    sudo apt-get install -y hive-metastore && \
+    sudo apt-get install -y hive-server2 && \
+    sudo apt-get install -y mysql-server && \
+    sudo apt-get install -y libmysql-java && \
+    sudo apt-get install -y hive-hcatalog && \
+    sudo apt-get install -y hive-webhcat && \
+    sudo apt-get install -y hive-webhcat-server 
+
+# NB : there is an error in the official documentation. The file [ /usr/share/java/libmysql-java.jar ]  does not exists for 
+# ubuntu systems
+RUN ln -s /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib/mysql-connector-java.jar
 
 #Copy updated config files
 COPY conf/core-site.xml /etc/hadoop/conf/core-site.xml
@@ -30,6 +52,12 @@ COPY conf/hdfs-site.xml /etc/hadoop/conf/hdfs-site.xml
 COPY conf/mapred-site.xml /etc/hadoop/conf/mapred-site.xml
 COPY conf/hadoop-env.sh /etc/hadoop/conf/hadoop-env.sh
 COPY conf/yarn-site.xml /etc/hadoop/conf/yarn-site.xml
+
+COPY conf/hive-site.xml /etc/hive/conf/hive-site.xml
+COPY conf/my_hive_metastore_init.sql /etc/hive/conf/my_hive_metastore_init.sql
+# Hcatalog env settings file
+COPY conf/webhcat-env.sh /etc/hive-webhcat/conf/webhcat-env.sh
+
 COPY conf/fair-scheduler.xml /etc/hadoop/conf/fair-scheduler.xml
 COPY conf/oozie-site.xml /etc/oozie/conf/oozie-site.xml
 COPY conf/spark-defaults.conf /etc/spark/conf/spark-defaults.conf
@@ -45,15 +73,12 @@ RUN sudo -u oozie /usr/lib/oozie/bin/ooziedb.sh create -run && \
     wget http://archive.cloudera.com/gplextras/misc/ext-2.2.zip -O ext.zip && \
     unzip ext.zip -d /var/lib/oozie
 
-#uninstall not necessary hue apps
+#uninstall not necessary HUE apps
 RUN /usr/lib/hue/tools/app_reg/app_reg.py --remove hbase && \
     /usr/lib/hue/tools/app_reg/app_reg.py --remove impala && \
-    /usr/lib/hue/tools/app_reg/app_reg.py --remove beeswax && \
-    /usr/lib/hue/tools/app_reg/app_reg.py --remove spark && \
     /usr/lib/hue/tools/app_reg/app_reg.py --remove search && \
     /usr/lib/hue/tools/app_reg/app_reg.py --remove sqoop && \
     /usr/lib/hue/tools/app_reg/app_reg.py --remove rdbms && \
-    /usr/lib/hue/tools/app_reg/app_reg.py --remove metastore && \
     /usr/lib/hue/tools/app_reg/app_reg.py --remove zookeeper && \
     /usr/lib/hue/tools/app_reg/app_reg.py --remove security
 

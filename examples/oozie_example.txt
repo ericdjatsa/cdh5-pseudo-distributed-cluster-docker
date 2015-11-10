@@ -1,0 +1,35 @@
+<workflow-app name="query_users" xmlns="uri:oozie:workflow:0.4">
+    <start to="create_output_dir"/>
+    <action name="create_output_dir">
+        <fs>
+              <mkdir path='${nameNode}/user/root/output'/>
+        </fs>
+        <ok to="select_over_28"/>
+        <error to="kill"/>
+    </action>
+    <action name="select_over_28">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>hive.metastore.uris</name>
+                    <value>thrift://localhost:9083</value>
+                </property>
+                <property>
+                    <name>oozie.launcher.hive.metastore.uris</name>
+                    <value>thrift://localhost:9083</value>
+                </property>
+            </configuration>
+            <script>/user/root/queries/select_users.hql</script>
+              <param>ageParam=28</param>
+        </hive>
+        <ok to="end"/>
+        <error to="kill"/>
+    </action>
+    <kill name="kill">
+        <message>Action failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+</workflow-app>
+

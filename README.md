@@ -1,27 +1,41 @@
-# CDH 5 pseudo-distributed cluster Docker image
+# CDH 5 pseudo-distributed cluster Docker image ( Credits to chalimartines/cdh5-pseudo-distributed - https://github.com/chali/hadoop-cdh-pseudo-docker)
+
+##### Main changes from "chalimartines/cdh5-pseudo-distributed" : 
+- modified repository files to always use the latest version of CDH5
+- use mysql as metastore DB for Hive
+- use mysql as Oozie backend database
+- installed WebHcat
 
 Do you develop Hadoop mapreduce applications on top of Cloudera distribution? This docker image can help you. It contains basic CDH 5 setup with YARN. You can use it for developmeent and verification of your code in local environment without messing up your system with Hadoop instalation.
 
-Docker image was prepared according to [Installing CDH 5 with YARN on a Single Linux Node in Pseudo-distributed mode](http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH5/latest/CDH5-Quick-Start/cdh5qs_yarn_pseudo.html) with a few adjustments for Docker environment.
+Docker image was prepared according to [Installing CDH 5 with YARN on a Single Linux Node in Pseudo-distributed mode](http://www.cloudera.com/content/cloudera-content/cloudera-docs/CDH5/latest/CDH5-Quick-Start/cdh5qs_yarn_pseudo.html) with a few adjustments for Docker environment. 
+The CLoudera repository used for building this docker image is setup to always use the latest version of CDH5.
 
 ##### Installed services
 * HDFS
 * YARN
+* Map-Reduce
 * JobHistoryServer
 * Oozie
 * Hue
-* Spark (installation for execution on top of YARN)
+* Spark (instalation for execution on top of YARN)
+* Hive + Hive-Server2
+* WebHcat
 
 ### Execution
 Get docker image
 
-    docker pull chalimartines/cdh5-pseudo-distributed
+    docker pull ericdjatsa/cdh5-pseudo-distributed
 
 Run image with specified port mapping
 
-    docker run --name cdh -d -p 8020:8020 -p 50070:50070 -p 50010:50010 -p 50020:50020 -p 50075:50075 -p 8030:8030 -p 8031:8031 -p 8032:8032 -p 8033:8033 -p 8088:8088 -p 8040:8040 -p 8042:8042 -p 10020:10020 -p 19888:19888 -p 11000:11000 -p 8888:8888 -p 18080:18080 -p 9999:9999 chalimartines/cdh5-pseudo-distributed
+    docker run -it --name cdh -d -p 8020:8020 -p 50070:50070 -p 50010:50010 -p 50020:50020 -p 50075:50075 -p 8030:8030 -p 8031:8031 -p 8032:8032 -p 8033:8033 -p 8088:8088 -p 8040:8040 -p 8042:8042 -p 10020:10020 -p 19888:19888 -p 11000:11000 -p 8888:8888 -p 18080:18080 -p 50111:50111 -p 9999:9999 ericdjatsa/cdh5-pseudo-distributed
 
- Or you can use docker-compose configuration from [here](https://github.com/chali/cdh5-pseudo-distributed-cluster-docker-compose)
+ Or you can just install [docker-compose](https://docs.docker.com/compose/install/) and run 
+
+    docker-compose up 
+
+which will start the docker container specified in configuration file docker-compose.yml
   
 If you are Mac OS user with docker machine with virtualbox driver and you would like to get from your local system to a cdh container add these port forwardings. Name of virtual machine is equal to your docker machine name (here it is "dev").
 
@@ -52,6 +66,9 @@ Those urls consider port forwarding from localhost.
 * oozie console - http://localhost:11000
 * hue - http://localhost:8888
 * spark history server - http://localhost:18080
+
+### WebHcat
+http://cdh5pseudo:50111/templeton/v1/ddl/database/default/table/?user.name=hdfs
 
 #### Hue login
 You will be asked to create account during the first login. You can pick your prefered username and password. It will create home folder on HDFS and it can be used as hadoop user.
