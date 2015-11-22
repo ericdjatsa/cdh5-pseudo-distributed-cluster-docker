@@ -27,22 +27,27 @@ RUN echo mysql-server mysql-server/root_password seen true | debconf-set-selecti
 RUN echo mysql-server mysql-server/root_password_again seen true | debconf-set-selections
 
 #Install CDH package and dependencies
-RUN DEBIAN_FRONTEND=noninteractive sudo apt-get install -y zookeeper-server && \
-    sudo apt-get install -y hadoop-conf-pseudo && \
-    sudo apt-get install -y oozie && \
-    sudo apt-get install -y python2.7 && \
-    sudo apt-get install -y hue && \
-    sudo apt-get install -y hue-plugins && \
-    sudo apt-get install -y spark-core spark-history-server spark-python && \
-    sudo apt-get install -y hive-metastore && \
-    sudo apt-get install -y hive-server2 && \
-    sudo apt-get install -y mysql-server && \
-    sudo apt-get install -y libmysql-java && \
-    sudo apt-get install -y hive-hcatalog && \
-    sudo apt-get install -y hive-webhcat && \
-    sudo apt-get install -y hive-webhcat-server 
+# NB : Refering to the docker recommendations on writing Dockerfile : https://docs.docker.com/v1.8/articles/dockerfile_best-practices/
+# I list the packages to install in alphabetical order. This will simplify adding new packages and will simplify reading
+RUN DEBIAN_FRONTEND=noninteractive sudo apt-get update && sudo apt-get install -y \
+    hadoop-conf-pseudo  \
+    hive-hcatalog  \
+    hive-metastore  \
+    hive-server2  \
+    hive-webhcat  \
+    hive-webhcat-server \
+    hue \
+    hue-plugins  \
+    libmysql-java  \
+    mysql-server  \
+    oozie  \
+    python2.7  \
+    spark-core \
+    spark-history-server \
+    spark-python  \
+    zookeeper-server 
 
-# NB : there is an error in the official documentation. The file [ /usr/share/java/libmysql-java.jar ]  does not exists for 
+# NB : there is an error in the cdh5 installation official documentation. The file [ /usr/share/java/libmysql-java.jar ]  does not exists for 
 # ubuntu systems
 RUN ln -s /usr/share/java/mysql-connector-java.jar /usr/lib/hive/lib/mysql-connector-java.jar
 
@@ -73,7 +78,7 @@ RUN sudo -u oozie /usr/lib/oozie/bin/ooziedb.sh create -run && \
     wget http://archive.cloudera.com/gplextras/misc/ext-2.2.zip -O ext.zip && \
     unzip ext.zip -d /var/lib/oozie
 
-#uninstall not necessary HUE apps
+# uninstall not necessary HUE apps
 RUN /usr/lib/hue/tools/app_reg/app_reg.py --remove hbase && \
     /usr/lib/hue/tools/app_reg/app_reg.py --remove impala && \
     /usr/lib/hue/tools/app_reg/app_reg.py --remove search && \

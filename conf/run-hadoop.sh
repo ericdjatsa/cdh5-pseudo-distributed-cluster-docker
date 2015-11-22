@@ -20,6 +20,9 @@ service hadoop-yarn-resourcemanager start
 service hadoop-yarn-nodemanager start
 service hadoop-mapreduce-historyserver start
 
+# Set hdfs as the group for the /tmp folder
+sudo -u hdfs hadoop fs -chown -R :hdfs /tmp
+
 sudo -u hdfs hadoop fs -mkdir -p /user/hdfs
 sudo -u hdfs hadoop fs -chown hdfs /user/hdfs
 
@@ -30,7 +33,7 @@ sudo -u hdfs hadoop fs -chown hdfs /user/hive/warehouse
 sudo -u hdfs hadoop fs -chmod -R 1777 /user/hive/warehouse
 
 
-# # init Hive metastore schema . NB : we also set a MySQL user account [ user : hive , pwd : hive ]  
+# # init Hive metastore schema . NB : we also set a MySQL user account for Hive [ user : hive , pwd : hive ]  
 # for Hive to access the metastore
 # TODO PRIORITY 1 : use a bind variable to specify the hive version
 # because there is a path to Hive metastore init script linked to Hive's version
@@ -48,6 +51,9 @@ cd $working_dir
 service hive-metastore start
 service hive-server2 start
 service hive-webhcat-server start
+
+# Add user root to hdfs and hadoop groups
+usermod -a -G hdfs,hadoop root
 
 #create user directories
 sudo -u hdfs hadoop fs -mkdir -p /user/root
