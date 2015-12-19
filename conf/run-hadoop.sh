@@ -48,12 +48,13 @@ mysql -u root -padmin mysql < /etc/hive/conf/my_hive_metastore_init.sql
 # We go back to the previous working dir
 cd $working_dir
 
+# Start Hive services
 service hive-metastore start
 service hive-server2 start
-service hive-webhcat-server start
+service hive-webhcat-server start &
 
-# Add user root to hdfs and hadoop groups
-usermod -a -G hdfs,hadoop root
+# Add user root to hdfs , hadoop and hue groups
+usermod -a -G hdfs,hadoop,hue root
 
 #create user directories
 sudo -u hdfs hadoop fs -mkdir -p /user/root
@@ -64,7 +65,7 @@ sudo -u hdfs hadoop fs -mkdir /user/oozie
 sudo -u hdfs hadoop fs -chown oozie:oozie /user/oozie
 sudo oozie-setup sharelib create -fs hdfs://localhost:8020 -locallib /usr/lib/oozie/oozie-sharelib-yarn
 
-service oozie start
+service oozie start &
 export OOZIE_URL=http://localhost:11000/oozie
 
 #init spark history server
@@ -78,9 +79,15 @@ sudo -u hdfs hadoop fs -chmod 1777 /user/spark/applicationHistory
 sudo -u spark hadoop fs -mkdir -p /user/spark/share/lib 
 sudo -u spark hadoop fs -put /usr/lib/spark/lib/spark-assembly.jar /user/spark/share/lib/spark-assembly.jar 
 
-service spark-history-server start
+service spark-history-server start &
 
-service hue start
+# Start Hue Spark Notebook server.
+export HUE_HOME="/usr/lib/hue"
+export SPARK_HOME="/usr/lib/spark"
+export HADOOP_CONF_DIR="/etc/hadoop/conf"
+$HUE_HOME/build/env/bin/hue livy_server &
+
+service hue start &
 
 sleep 1
 

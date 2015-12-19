@@ -16,6 +16,18 @@
     <name>hadoop.proxyuser.oozie.groups</name>
     <value>*</value>
   </property>
+  
+  <!-- Add root impersonation in order to be able to submit spark jobs from HUE Spark Notebook
+       The main reason for enabling this impersonation is because Spark Rest server needed by Hue Spark Notebook is started by user root 
+  -->
+  <property>
+    <name>hadoop.proxyuser.root.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.root.groups</name>
+    <value>*</value>
+  </property>
 
   <!-- Hue WebHDFS proxy user setting -->
   <property>
