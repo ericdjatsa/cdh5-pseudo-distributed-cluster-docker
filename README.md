@@ -5,6 +5,7 @@
 - use mysql as metastore DB for Hive
 - use mysql as Oozie backend database
 - installed WebHcat
+- enabled and configured HUE Spark Notebook : provides an interactive interface for submitting tasks to Spark
 
 Do you develop Hadoop mapreduce applications on top of Cloudera distribution? This docker image can help you. It contains basic CDH 5 setup with YARN. You can use it for developmeent and verification of your code in local environment without messing up your system with Hadoop instalation.
 
